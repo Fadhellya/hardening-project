@@ -1,0 +1,34 @@
+---
+- name: Playbook Re-Audit OpenSCAP (CIS) Setelah Remediation
+  hosts: rhel9
+  become: yes
+  gather_facts: no
+
+  vars:
+    oscap_profile: 'xccdf_org.ssgproject.content_profile_cis_server_l1'
+    scap_content_file: '/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml'
+    report_destination_dir: '{{ playbook_dir }}/reports'
+
+  tasks:
+    - name: Pastikan tools OpenSCAP tersedia
+      ansible.builtin.package:
+        name:
+          - openscap-scanner
+          - scap-security-guide
+        state: present
+
+    - name: Audit after remediation
+      ansible.builtin.command: >
+        oscap xccdf eval
+        --profile {{ oscap_profile }}
+        --report /tmp/report-{{ inventory_hostname }}-after.html
+        {{ scap_content_file }}
+      register: scan_after
+      failed_when: scan_after.rc != 0 and scan_after.rc != 2
+      changed_when: scan_after.rc == 2
+
+    - name: Fetch audit after report
+      ansible.builtin.fetch:
+        src: /tmp/report-{{ inventory_hostname }}-after.html
+        dest: '{{ report_destination_dir }}/'
+        flat: yes
