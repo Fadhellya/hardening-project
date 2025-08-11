@@ -8,7 +8,7 @@
   # Variabel ini bisa Anda ganti di Extra Variables pada Job Template AAP
   # agar playbook ini bisa digunakan untuk RHEL 8, 9, atau OS lain.
   vars:
-    oscap_profile: 'cis_redhat_enterprise_linux_9_profile'
+    oscap_profile: 'xccdf_org.ssgproject.content_profile_cis_server_l1'
     scap_content_file: '/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml'
     report_destination_dir: '{{ playbook_dir }}/reports'
 
