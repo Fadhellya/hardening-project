@@ -1,0 +1,10 @@
+---
+- name: Terapkan CIS Benchmark Hardening pada RHEL 9
+  # Menargetkan grup inventory untuk RHEL 9
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+    # Memanggil role yang spesifik untuk RHEL 9
+    - role: ansible-lockdown.rhel9-cis
