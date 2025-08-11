@@ -1,0 +1,45 @@
+---
+- name: Playbook Persiapan dan Audit OpenSCAP
+  # Targetkan host yang ingin diaudit. Anda bisa menentukannya saat menjalankan Job di AAP.
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  # Variabel ini bisa Anda ganti di Extra Variables pada Job Template AAP
+  # agar playbook ini bisa digunakan untuk RHEL 8, 9, atau OS lain.
+  vars:
+    oscap_profile: 'cis_redhat_enterprise_linux_9_profile'
+    scap_content_file: '/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml'
+    report_destination_dir: '{{ playbook_dir }}/reports'
+
+  tasks:
+    - name: 1. Memastikan tools OpenSCAP dan panduan keamanan terinstal
+      ansible.builtin.package:
+        name:
+          - openscap-scanner      # Tool utama untuk scanning
+          - scap-security-guide   # Berisi definisi profil (CIS, STIG, dll)
+        state: present
+
+    - name: 2. Menjalankan audit OpenSCAP dan membuat laporan HTML
+      ansible.builtin.command: >
+        oscap xccdf eval
+        --profile {{ oscap_profile }}
+        --report /tmp/report-{{ inventory_hostname }}.html
+        {{ scap_content_file }}
+      register: scan_result
+      # Penanganan exit code:
+      # oscap exit code 0 = Semua aturan PASS
+      # oscap exit code 2 = Ada aturan yang FAIL (ini bukan error eksekusi)
+      # Jadi, kita anggap playbook gagal hanya jika exit code-nya bukan 0 atau 2.
+      failed_when: scan_result.rc != 0 and scan_result.rc != 2
+      # Tandai sebagai 'changed' jika ada aturan yang gagal, agar mudah terlihat di log.
+      changed_when: scan_result.rc == 2
+
+    - name: 3. Mengambil laporan HTML dari host target ke AAP Controller
+      ansible.builtin.fetch:
+        # Ambil file laporan yang baru dibuat di host target
+        src: /tmp/report-{{ inventory_hostname }}.html
+        # Simpan ke direktori 'reports' di dalam direktori proyek di controller
+        dest: '{{ report_destination_dir }}/'
+        # 'flat: yes' agar file disimpan langsung tanpa membuat sub-direktori nama host
+        flat: yes

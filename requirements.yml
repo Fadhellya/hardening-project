@@ -1,4 +1,0 @@
----
-roles:
-  # Menggunakan underscore (_) pada nama role, bukan hyphen (-)
-  - name: ansible-lockdown.rhel9_cis
