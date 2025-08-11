@@ -1,4 +1,4 @@
 ---
 roles:
-  # Menggunakan role yang spesifik untuk RHEL 9 CIS Benchmark
-  - name: ansible-lockdown.rhel9-cis
+  # Menggunakan underscore (_) pada nama role, bukan hyphen (-)
+  - name: ansible-lockdown.rhel9_cis
