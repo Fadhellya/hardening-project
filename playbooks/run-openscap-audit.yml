@@ -1,7 +1,7 @@
 ---
 - name: Playbook Persiapan dan Audit OpenSCAP
   # Targetkan host yang ingin diaudit. Anda bisa menentukannya saat menjalankan Job di AAP.
-  hosts: all
+  hosts: rhel9
   become: yes
   gather_facts: no
 
