@@ -35,7 +35,25 @@
       # Tandai sebagai 'changed' jika ada aturan yang gagal, agar mudah terlihat di log.
       changed_when: scan_result.rc == 2
 
-    - name: 3. Mengambil laporan HTML dari host target ke AAP Controller
+    # --- TAMBAHAN BARU UNTUK LOGGING ---
+    - name: 3. Menampilkan ringkasan hasil scan di log AAP
+      ansible.builtin.debug:
+        msg: |
+          
+          ================= HASIL SCAN OSCAP UNTUK {{ inventory_hostname }} =================
+          
+          {{ scan_result.stdout }}
+          
+          ================= PESAN ERROR (JIKA ADA) =================
+          
+          {{ scan_result.stderr }}
+          
+          ===============================================================
+          
+      # Hanya jalankan tugas ini jika ada output untuk ditampilkan agar log bersih.
+      when: scan_result.stdout is defined or scan_result.stderr is defined
+
+    - name: 4. Mengambil laporan HTML dari host target ke AAP Controller
       ansible.builtin.fetch:
         # Ambil file laporan yang baru dibuat di host target
         src: /tmp/report-{{ inventory_hostname }}.html
