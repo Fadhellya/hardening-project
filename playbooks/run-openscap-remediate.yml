@@ -1,6 +1,6 @@
 ---
 - name: Playbook Hardening Otomatis Berdasarkan OpenSCAP
-  hosts: all
+  hosts: rhel9
   become: yes
   gather_facts: no
 
