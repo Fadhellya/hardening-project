@@ -1,0 +1,41 @@
+---
+- name: Playbook Hardening Otomatis Berdasarkan OpenSCAP
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  vars:
+    oscap_profile: 'xccdf_org.ssgproject.content_profile_cis_server_l1'
+    scap_content_file: '/usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml'
+
+  tasks:
+    - name: Memastikan tools OpenSCAP terinstal
+      ansible.builtin.package:
+        name:
+          - openscap-scanner
+          - scap-security-guide
+        state: present
+
+    - name: Generate remediation script dari OpenSCAP
+      ansible.builtin.command: >
+        oscap xccdf generate fix
+        --profile {{ oscap_profile }}
+        --fix-type bash
+        {{ scap_content_file }}
+      register: remediation_script
+      changed_when: remediation_script.rc == 0
+
+    - name: Simpan remediation script ke file di target
+      ansible.builtin.copy:
+        content: "{{ remediation_script.stdout }}"
+        dest: /tmp/remediation.sh
+        mode: '0755'
+
+    - name: Eksekusi remediation script
+      ansible.builtin.command: /tmp/remediation.sh
+      register: remediation_result
+      ignore_errors: yes
+
+    - name: Tampilkan hasil eksekusi remediation
+      ansible.builtin.debug:
+        var: remediation_result.stdout
